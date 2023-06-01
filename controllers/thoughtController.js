@@ -3,7 +3,7 @@ const {Types} = require('mongoose');
 
 module.exports = {
   
- // Get all thoughts
+    // Get all thoughts
     async getAllThoughts(req, res) {
         try {
         const thoughts = await Thought.find({});
@@ -43,6 +43,50 @@ module.exports = {
             res.status(200).json(thought);
         } catch (err) {
             res.status(500).json(err);
+        }
+    },
+        // Update a thought by Id
+    async updateThoughtById(req, res) {
+        try {
+        const thought = await Thought.findByIdAndUpdate(req.params.thoughtId, req.body, {
+            new: true,
+        });
+        if (!thought) {
+            res.status(404).json({ message: 'Thought not found' });
+        } else {
+            res.json(thought);
+        }
+        } catch (err) {
+        res.status(500).json(err);
+        }
+    },
+
+    // Create a  reaction
+    async createReaction(req, res) {
+        try {
+            const thought = await Thought.findOneAndUpdate(
+                {_id:req.params.thoughtId},
+                {$addToSet: {reactions: req.body}},
+                {runValidators: true, new: true}
+            );
+            thought ? res.json(thought) : res.status(404).json({message: notFound});
+        } catch (e) {
+            res.status(500).json(e);
+        }
+    },
+
+    // Delete a reaction
+    async deleteReaction(req, res) {
+        try {
+            const thought = await Thought.findOneAndUpdate(
+                {_id: req.params.thoughtId},
+                {$pull: {reactions: {reactionId: req.params.reactionId}}},
+                {runValidators: true, new: true}
+            );
+
+            thought ? res.json(thought) : res.status(404).json({message: notFound});
+        } catch (e) {
+            res.status(500).json(e);
         }
     },
 };
